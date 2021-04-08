@@ -1,6 +1,7 @@
 from selenium import webdriver
 import time
 
+# Change webdriver_path to the appropriate path on your machine
 webdriver_path = "/Users/wburn/PycharmProjects/chromedriver"
 driver = webdriver.Chrome(executable_path=webdriver_path)
 
@@ -8,62 +9,32 @@ driver.get("http://orteil.dashnet.org/experiments/cookie/")
 
 cookie = driver.find_element_by_id("cookie")
 
+# Set up timer
 start_time = time.time()
-timeout = time.time() + 60  # 5 minutes from now
+timeout = time.time() + 300  # Run for 5 minutes (5 * 60 seconds)
 
-cursor_cost = int(driver.find_element_by_id("buyCursor").text.split("\n")[0].split("-")[1].strip().replace(",", ""))
 
-print(cursor_cost)
-wait_timer = time.time()
+def get_available_upgrades():
+    """
+    Creates a list of store elements that are able to be purchased
+    :return: Returns a list of page elements
+    """
+    store_items = driver.find_elements_by_css_selector("#store div")
+    available_items = [element for element in store_items if element.get_attribute("class") != "grayed"]
+
+    return available_items
+
 
 while True:
-    for _ in range(400):
+    for _ in range(200):  # Can be adjusted to tweak performance...
         cookie.click()
-    elapsed = time.time() - wait_timer
-    print(f"100 clicks in {elapsed}s")
-    money = int(driver.find_element_by_id("money").text.replace(",", ""))
-    cursor = driver.find_element_by_id("buyCursor")
-    cursor_cost = int(
-        driver.find_element_by_id("buyCursor").text.split("\n")[0].split("-")[1].strip().replace(",", ""))
-    grandma = driver.find_element_by_id("buyGrandma")
-    grandma_cost = int(
-        driver.find_element_by_id("buyGrandma").text.split("\n")[0].split("-")[1].strip().replace(",", ""))
-    factory = driver.find_element_by_id("buyFactory")
-    factory_cost = int(
-        driver.find_element_by_id("buyFactory").text.split("\n")[0].split("-")[1].strip().replace(",", ""))
-    mine = driver.find_element_by_id("buyMine")
-    mine_cost = int(driver.find_element_by_id("buyMine").text.split("\n")[0].split("-")[1].strip().replace(",", ""))
-    shipment = driver.find_element_by_id("buyShipment")
-    shipment_cost = int(
-        driver.find_element_by_id("buyShipment").text.split("\n")[0].split("-")[1].strip().replace(",", ""))
+    upgradeable_items = get_available_upgrades()  # Get list of available upgrades
+    biggest_upgrade = upgradeable_items[-1]  # Find the biggest one
+    biggest_upgrade.click()  # Buy it
 
-    cursor_efficiency = cursor_cost / .2
-    grandma_efficiency = grandma_cost / .8
-    factory_efficiency = factory_cost / 4
-
-
-    if money > shipment_cost:
-        mine.click()
-        print(f"Bought Shipment - Cost: {shipment_cost}")
-        wait_timer = time.time()
-    if money > mine_cost:
-        mine.click()
-        print(f"Bought Mine - Cost: {mine_cost}")
-        wait_timer = time.time()
-    if money > factory_cost:
-        factory.click()
-        print(f"Bought Factory - Cost/Cookie/Sec: {factory_efficiency}")
-        wait_timer = time.time()
-    elif money > grandma_cost:
-        grandma.click()
-        print(f"Bought Grandma - Cost/Cookie/Sec: {grandma_efficiency}")
-        wait_timer = time.time()
-    elif money > cursor_cost:
-        cursor.click()
-        print(f"Bought Cursor - Cost/Cookie/Sec: {cursor_efficiency}")
-        wait_timer = time.time()
-    if time.time() > timeout:
+    if time.time() > timeout:  # Break out of the loop once the timer is complete
         break
+
 
 
 
